@@ -1,0 +1,930 @@
+<title>Стол петкорм 2000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Mono&family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+:root {
+  --bg:        #E8ECEF;
+  --surface:   #FFFFFF;
+  --surface-2: #F2F6F7;
+  --ink:       #131A1F;
+  --muted:     #5B6C77;
+  --line:      #C6D1D7;
+  --line-soft: #DEE6EA;
+  --accent:    #A8680A;
+  --accent-bg: #F6E8CE;
+  --view-1:    #D6DFE4;
+  --view-2:    #BFCCD3;
+  --shadow:    0 1px 2px rgba(19,26,31,.07), 0 8px 24px -12px rgba(19,26,31,.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #101519;
+    --surface:   #182026;
+    --surface-2: #1F282F;
+    --ink:       #E1E9ED;
+    --muted:     #8798A3;
+    --line:      #2B353D;
+    --line-soft: #222C33;
+    --accent:    #E0A044;
+    --accent-bg: #33291A;
+    --view-1:    #10161A;
+    --view-2:    #070B0D;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #101519;
+  --surface:   #182026;
+  --surface-2: #1F282F;
+  --ink:       #E1E9ED;
+  --muted:     #8798A3;
+  --line:      #2B353D;
+  --line-soft: #222C33;
+  --accent:    #E0A044;
+  --accent-bg: #33291A;
+  --view-1:    #10161A;
+  --view-2:    #070B0D;
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.55 "PT Sans", -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1320px; margin: 0 auto; padding: 28px 22px 64px; }
+
+.head {
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  gap: 18px 32px; padding-bottom: 18px; margin-bottom: 22px;
+  border-bottom: 2px solid var(--ink);
+}
+.head h1 {
+  margin: 0; font-family: "PT Sans Narrow", "PT Sans", sans-serif;
+  font-weight: 700; font-size: clamp(30px, 4.5vw, 46px);
+  line-height: .98; letter-spacing: -.005em; text-wrap: balance;
+}
+.head .sub {
+  margin: 5px 0 0; color: var(--muted); font-size: 14px; max-width: 48ch;
+}
+.stamp {
+  margin-left: auto; display: grid; grid-template-columns: auto auto;
+  gap: 2px 16px; align-items: baseline;
+  font-family: "PT Mono", monospace; font-size: 12.5px;
+}
+.stamp dt {
+  font-family: "PT Sans Narrow", sans-serif; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .09em;
+  font-size: 11px; color: var(--muted);
+}
+.stamp dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+.grid {
+  display: grid; gap: 20px;
+  grid-template-columns: minmax(0, 1.62fr) minmax(280px, .9fr);
+  align-items: start;
+}
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.stage {
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+#view {
+  display: block; width: 100%; height: 520px;
+  background: linear-gradient(170deg, var(--view-1), var(--view-2));
+  cursor: grab; touch-action: none;
+}
+#view:active { cursor: grabbing; }
+@media (max-width: 560px) { #view { height: 380px; } }
+
+.hint {
+  padding: 7px 14px; border-top: 1px solid var(--line-soft);
+  color: var(--muted); font-size: 12.5px;
+}
+
+.controls {
+  margin-top: 20px; background: var(--surface);
+  border: 1px solid var(--line); box-shadow: var(--shadow);
+  display: grid; gap: 0; grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) { .controls { grid-template-columns: 1fr; } }
+.ctl { padding: 16px 18px; }
+.ctl + .ctl { border-left: 1px solid var(--line-soft); }
+@media (max-width: 640px) {
+  .ctl + .ctl { border-left: 0; border-top: 1px solid var(--line-soft); }
+}
+
+.eyebrow {
+  font-family: "PT Sans Narrow", sans-serif; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .11em; font-size: 11px;
+  color: var(--muted); margin: 0 0 10px;
+}
+
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+button {
+  font: 400 13px "PT Sans", sans-serif; color: var(--ink);
+  background: var(--surface-2); border: 1px solid var(--line);
+  padding: 5px 11px; cursor: pointer;
+}
+button:hover { border-color: var(--muted); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button[aria-pressed="true"] {
+  background: var(--accent-bg); border-color: var(--accent); color: var(--ink);
+}
+
+.slider-row { display: flex; align-items: center; gap: 14px; }
+input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
+input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.readout {
+  font-family: "PT Mono", monospace; font-size: 22px;
+  font-variant-numeric: tabular-nums; color: var(--accent); white-space: nowrap;
+}
+.readout small {
+  font-family: "PT Sans Narrow", sans-serif; font-size: 12px;
+  color: var(--muted); letter-spacing: .06em;
+}
+.travel { margin: 9px 0 0; font-size: 12.5px; color: var(--muted); }
+
+.spec {
+  background: var(--surface); border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.spec section { padding: 15px 18px; }
+.spec section + section { border-top: 1px solid var(--line-soft); }
+.spec dl {
+  margin: 0; display: grid; grid-template-columns: 1fr auto;
+  gap: 5px 14px; align-items: baseline;
+}
+.spec dt { color: var(--muted); font-size: 13.5px; }
+.spec dd {
+  margin: 0; font-family: "PT Mono", monospace; font-size: 13px;
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.spec dd b { font-weight: 400; color: var(--accent); }
+
+.open {
+  margin-top: 20px; background: var(--surface);
+  border: 1px solid var(--line); border-top: 3px solid var(--accent);
+  box-shadow: var(--shadow); padding: 20px 22px;
+}
+.open h2 {
+  margin: 0 0 4px; font-family: "PT Sans Narrow", sans-serif;
+  font-weight: 700; font-size: 22px; letter-spacing: .01em;
+}
+.open > p { margin: 0 0 16px; color: var(--muted); font-size: 14px; max-width: 62ch; }
+.qs { display: grid; gap: 0; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); }
+.q { padding: 13px 20px 13px 0; border-top: 1px solid var(--line-soft); }
+.q h3 { margin: 0 0 3px; font-size: 14.5px; font-weight: 700; }
+.q p { margin: 0; font-size: 13.5px; color: var(--muted); }
+.q .val {
+  font-family: "PT Mono", monospace; font-size: 12.5px;
+  color: var(--accent); display: block; margin-top: 4px;
+}
+
+footer {
+  margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 12.5px;
+  display: flex; flex-wrap: wrap; gap: 6px 20px;
+}
+
+.drawing {
+  margin-top: 20px; background: var(--surface);
+  border: 1px solid var(--line); box-shadow: var(--shadow); padding: 20px 22px 24px;
+}
+.drawing h2 {
+  margin: 0 0 4px; font-family: 'PT Sans Narrow', sans-serif;
+  font-weight: 700; font-size: 22px;
+}
+.drawing > p { margin: 0 0 16px; color: var(--muted); font-size: 14px; max-width: 62ch; }
+#sheet { overflow-x: auto; }
+#sheet svg { display: block; width: 100%; height: auto; background: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="head">
+    <div>
+      <h1>Столы производственные</h1>
+      <p class="sub">Нержавеющая сталь AISI&nbsp;304. Модели по фотографиям образца в цехе. Столешница и бортик переделаны по фото 06.09.</p>
+    </div>
+    <dl class="stamp">
+      <dt>Габарит</dt><dd id="s-gab">2000 × 650 × 1100</dd>
+      <dt>Высота</dt><dd>1100 … 1200 регул.</dd>
+      <dt>Нагрузка</dt><dd>130 кг</dd>
+      <dt>Файл</dt><dd id="s-file">стол_2000x650x1100.stl</dd>
+    </dl>
+  </header>
+
+  <div class="grid">
+
+    <div>
+      <div class="stage">
+        <canvas id="view"></canvas>
+        <p class="hint">Тянуть — поворот. Колесо — масштаб. Правая кнопка или две точки — сдвиг.</p>
+      </div>
+
+      <div class="controls">
+        <div class="ctl">
+          <p class="eyebrow">Стол</p>
+          <div class="btns" id="tables">
+            <button data-k="t2000" aria-pressed="true">2000 × 650</button>
+            <button data-k="t800" aria-pressed="false">800 × 640 · свес по длине</button>
+          </div>
+          <p class="eyebrow" style="margin-top:14px">Высота рабочей поверхности</p>
+          <div class="slider-row">
+            <input type="range" id="h" min="1100" max="1200" step="5" value="1100" aria-label="Высота рабочей поверхности, мм">
+            <span class="readout"><span id="hval">1100</span> <small>ММ</small></span>
+          </div>
+          <p class="travel">Опора вывернута на <b id="travel">0</b> мм.</p>
+        </div>
+        <div class="ctl">
+          <p class="eyebrow">Вид</p>
+          <div class="btns" id="views">
+            <button data-v="iso" aria-pressed="true">Изометрия</button>
+            <button data-v="front" aria-pressed="false">Спереди</button>
+            <button data-v="side" aria-pressed="false">С торца</button>
+            <button data-v="top" aria-pressed="false">Сверху</button>
+            <button data-v="under" aria-pressed="false">Снизу</button>
+            <button data-v="rail" aria-pressed="false">Узел бортика</button>
+          </div>
+          <p class="eyebrow" style="margin-top:14px">Показать</p>
+          <div class="btns" id="toggles">
+            <button data-t="rail" aria-pressed="true">Бортик</button>
+            <button data-t="shelf" aria-pressed="true">Полка</button>
+            <button data-t="top" aria-pressed="true">Столешница</button>
+            <button data-t="wire" aria-pressed="false">Рёбра</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec" id="spec"></div>
+
+  </div>
+
+  <div class="drawing">
+    <h2>Чертёж</h2>
+    <p>Три проекции с размерами. Строится из тех же параметров, что и модель, поэтому расходиться с ней не может. Переключается вместе со столом.</p>
+    <div id="sheet"></div>
+  </div>
+
+  <div class="open">
+    <h2>Что нужно подтвердить до раскроя</h2>
+    <p>Столешница, рама и бортик сделаны по фотографиям. Ниже — то, что по фото не измеряется и решается тобой.</p>
+    <div class="qs">
+      <div class="q">
+        <h3>Опрокидывание малого стола</h3>
+        <p>Свес 300 мм идёт по длине, на торце. Без мер стол переворачивается: опрокидывающий момент около 42 кгс·м против 3 кгс·м собственного веса. Поставил балки-лыжи вдоль стола с опорами под самым свесом — запас стал двукратным. Альтернатива — анкер в пол, тогда стол становится стационарным.</p>
+        <span class="val">лыжи вдоль стола, 4 опоры</span>
+      </div>
+      <div class="q">
+        <h3>Что помещается под свесом</h3>
+        <p>Ножки отодвинуты подо что-то. Если этому нужен свободный пол — лыжи не подойдут и останется анкер. Если достаточно просвета выше 160 мм — лыжи работают.</p>
+        <span class="val">просвет над лыжей: 160 мм</span>
+      </div>
+      <div class="q">
+        <h3>Где короткий бортик</h3>
+        <p>Ты говорил: на ближней длинной стороне, 400 мм от левого угла. На фото образца он идёт по торцу и заворачивает за угол от длинного. Сделал по твоему указанию.</p>
+        <span class="val">сейчас: ближняя длинная сторона</span>
+      </div>
+      <div class="q">
+        <h3>Бортик на малом столе</h3>
+        <p>Про него ничего не сказано, поэтому не ставил. Если нужен — скажи, на каких сторонах.</p>
+        <span class="val">сейчас: нет</span>
+      </div>
+      <div class="q">
+        <h3>Регулировка 100 мм</h3>
+        <p>Выкручиванием опоры это 50 оборотов на ногу и открытая резьба в цехе. Предлагал винтовой домкрат внутри ножки. В модели пока прежняя длинная шпилька.</p>
+        <span class="val">М16 × 300 → на замену</span>
+      </div>
+      <div class="q">
+        <h3>Сечение и стенка профиля</h3>
+        <p>Раз ножки встают в углы заподлицо, они того же сечения, что обвязка — 40×40. Стенку принял 2 мм.</p>
+        <span class="val">40×40×2</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Петкорм · столы производственные</span>
+    <span>Все размеры в миллиметрах</span>
+    <span>Модели предварительные, не рабочие чертежи</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var T = 2, FRAME = 40, LEG = 40, SH_FR = 30;
+  var LEG_BOT = 40, PLATE_H = 18, STUD_LEN = 300;
+  var RD = 9, RAIL_D = 18, RAIL_TOP_H = 120, RAIL_LOW_H = 55;
+  var RAIL_OFF = 30, HAIR_HALF = 30;
+  // Скобы раскладываются по пролёту, а не по заданному шагу — иначе крайняя
+  // уезжает за торец столешницы.
+  function spread(xa, xb, n) {
+    var a = [], i;
+    for (i = 0; i < n; i++) a.push(xa + ((xb - xa) * i) / (n - 1));
+    return a;
+  }
+
+  var CFG = {
+    t2000: {
+      name: '2000 × 650 × 1100', file: 'стол_2000x650x1100.stl',
+      L: 2000, W: 650, H: 1100,
+      legXs: [220, 1980], legYs: [20, 630], crossX: [500, 1000, 1500], shelfCross: 3,
+      shelfZ: 300, runner: null,
+      rail: [
+        { y: 650, sign: 1, xa: 35, xb: 1965,
+          hairs: spread(35, 1965, 5) },
+        { y: 0, sign: -1, xa: 35, xb: 435, hairs: spread(35, 435, 3) }
+      ],
+      cam: { r: 4600, t: 620 }
+    },
+    t800: {
+      name: '800 × 640 × 1100', file: 'стол_800x640x1100.stl',
+      L: 800, W: 640, H: 1100,
+      legXs: [320, 780], legYs: [20, 620], crossX: [160, 560], shelfCross: 1,
+      shelfZ: 300, runner: { z: 120, axis: 'x', a0: 0, a1: 800 },
+      rail: null,
+      cam: { r: 2600, t: 620 }
+    }
+  };
+
+  var SPEC = {
+    t2000: [
+      ['Столешница', [['Лист, без загиба', '2000 × 650 × 2', 1], ['Лежит на раме', 'пробочный шов', 0], ['Отметка верха', '1100', 1]]],
+      ['Подстолье', [['Обвязка, заподлицо', 'труба 40 × 40', 0], ['Поперечины', '3 шт · 500/1000/1500', 0], ['Верх рамы', '1098', 0]]],
+      ['Ножки', [['Труба', '40 × 40', 0], ['Оси рядов по длине', '220 и 1980', 1], ['Свес слева', '200', 1], ['Справа', 'в углу, заподлицо', 0], ['Оси по ширине', '20 и 630', 0], ['Опора', 'М16 × 300, Ø60', 0], ['Ход выкручивания', '100', 1]]],
+      ['Нижняя полка', [['Лист сверху на раме', '1720 × 650 × 2', 1], ['По ширине', 'как столешница', 0], ['По длине', 'между ножками', 0], ['Поперечины', '3 шт · 670/1100/1530', 1], ['Отметка верха', '300', 0]]],
+      ['Бортик — как на образце', [['Труба', 'Ø18', 0], ['Прутков', '2 · оси 55 и 120', 1], ['Стойки-скобы', 'приварены сбоку', 1], ['Ноги скобы', 'через 60', 0], ['Верх дужки', '150 над листом', 0], ['Прутки', 'с внутренней стороны', 1], ['Концы', 'отбой 180°', 0], ['Прутки за кромку', 'вровень', 0], ['Стойка за кромку', '18 · толщина трубы', 0], ['Длинный, дальняя ст.', '1930 · 5 скоб', 1], ['Короткий, ближняя ст.', '400 · 3 скобы', 1]]]
+    ],
+    t800: [
+      ['Столешница', [['Лист, без загиба', '800 × 640 × 2', 1], ['Отметка верха', '1100', 1]]],
+      ['Подстолье', [['Обвязка, заподлицо', 'труба 40 × 40', 0], ['Поперечины', '2 шт · 160/560', 1], ['Верх рамы', '1098', 0]]],
+      ['Ножки', [['Труба', '40 × 40', 0], ['Ряд у торца', 'в углах, ось 780', 0], ['Отодвинутый ряд', 'ось 320', 1], ['Свес по длине', '300', 1]]],
+      ['Против опрокидывания', [['Балка-лыжа', 'вдоль стола, 40 × 40', 1], ['Длина лыжи', '800, заподлицо', 0], ['Отметка низа', '120', 0], ['Просвет под лыжей', '120', 0], ['Опоры', '4 шт · оси 40 и 780', 1], ['Под угловой ножкой', 'по центру', 0], ['База опор по длине', '740', 1], ['Опора под свесом', 'ось 40', 1]]],
+      ['Нижняя полка', [['Лист сверху на раме', '420 × 640 × 2', 1], ['По ширине', 'как столешница', 0], ['По длине', 'между ножками', 0], ['Поперечина', '1 шт · 550', 1], ['Отметка верха', '300', 0]]],
+      ['Бортик', [['Не задан', '—', 0]]]
+    ]
+  };
+
+  var canvas = document.getElementById('view');
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(34, 1, 100, 20000);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x6f7d86, 1.05));
+  var kl = new THREE.DirectionalLight(0xffffff, 0.85); kl.position.set(1600, 2400, 2600); scene.add(kl);
+  var fl = new THREE.DirectionalLight(0xdfe8ee, 0.45); fl.position.set(-2200, 900, -1400); scene.add(fl);
+  var rl = new THREE.DirectionalLight(0xffffff, 0.3); rl.position.set(0, -1600, 900); scene.add(rl);
+
+  var steel = new THREE.MeshStandardMaterial({ color: 0xb7c3ca, metalness: 0.32, roughness: 0.42 });
+  var steelDark = new THREE.MeshStandardMaterial({ color: 0x93a2ab, metalness: 0.34, roughness: 0.5 });
+  var accentMat = new THREE.MeshStandardMaterial({ color: 0xc98a2e, metalness: 0.3, roughness: 0.45 });
+  var wireMat = new THREE.LineBasicMaterial({ color: 0x2b3d47, transparent: true, opacity: 0.5 });
+
+  var root = new THREE.Group();
+  root.rotation.x = -Math.PI / 2;
+  scene.add(root);
+
+  var model = new THREE.Group();
+  root.add(model);
+
+  var gUpper = new THREE.Group(), gLower = new THREE.Group();
+  var gTop = new THREE.Group(), gRail = new THREE.Group(), gShelf = new THREE.Group();
+  gUpper.add(gTop); gUpper.add(gRail); gUpper.add(gShelf);
+  model.add(gUpper); model.add(gLower);
+
+  var wires = [], showWire = false;
+
+  function reg(mesh) {
+    var e = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 25), wireMat);
+    e.position.copy(mesh.position); e.rotation.copy(mesh.rotation); e.visible = showWire;
+    mesh.parent.add(e); wires.push(e);
+  }
+
+  function box(g, x0, x1, y0, y1, z0, z1, mat) {
+    var m = new THREE.Mesh(
+      new THREE.BoxGeometry(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0)),
+      mat || steel);
+    m.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    g.add(m); reg(m); return m;
+  }
+
+  var UP = new THREE.Vector3(0, 1, 0);
+  function cyl(g, p0, p1, r, mat) {
+    var a = new THREE.Vector3().fromArray(p0), b = new THREE.Vector3().fromArray(p1);
+    var d = new THREE.Vector3().subVectors(b, a), len = d.length();
+    if (len < 1e-6) return;
+    var m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 18), mat || steel);
+    m.position.copy(a).addScaledVector(d, 0.5);
+    m.quaternion.setFromUnitVectors(UP, d.normalize());
+    g.add(m); return m;
+  }
+
+  function arcTube(g, c, dx, dy, R, a0, a1, r, steps) {
+    steps = steps || 10;
+    var pts = [], i, a;
+    for (i = 0; i <= steps; i++) {
+      a = a0 + ((a1 - a0) * i) / steps;
+      pts.push([c[0] + dx * R * Math.cos(a), c[1] + dy * R * Math.cos(a), c[2] + R * Math.sin(a)]);
+    }
+    for (i = 0; i < steps; i++) cyl(g, pts[i], pts[i + 1], r);
+  }
+
+  function clear(g) {
+    for (var i = g.children.length - 1; i >= 0; i--) {
+      var c = g.children[i];
+      if (c === gTop || c === gRail || c === gShelf) continue;
+      if (c.geometry) c.geometry.dispose();
+      g.remove(c);
+    }
+  }
+
+  // Стойки приварены СБОКУ — труба прижата к наружной грани и выступает за неё
+  // на свой диаметр. Прутки — с ВНУТРЕННЕЙ стороны стоек, вровень с кромкой.
+  function railRun(H, yEdge, sign, xa, xb, hairXs) {
+    var zTop = H + RAIL_TOP_H, zLow = H + RAIL_LOW_H;
+    var zMid = (zTop + zLow) / 2, rBend = (zTop - zLow) / 2;
+    var zBot = H - T - FRAME;
+    var yHair = yEdge + sign * RD;
+    var yBar = yHair - sign * RAIL_D;
+    cyl(gRail, [xa, yBar, zTop], [xb, yBar, zTop], RD);
+    cyl(gRail, [xa, yBar, zLow], [xb, yBar, zLow], RD);
+    arcTube(gRail, [xb, yBar, zMid], 1, 0, rBend, Math.PI / 2, -Math.PI / 2, RD);
+    arcTube(gRail, [xa, yBar, zMid], -1, 0, rBend, Math.PI / 2, -Math.PI / 2, RD);
+    hairXs.forEach(function (x) {
+      cyl(gRail, [x - HAIR_HALF, yHair, zBot], [x - HAIR_HALF, yHair, zTop], RD);
+      cyl(gRail, [x + HAIR_HALF, yHair, zBot], [x + HAIR_HALF, yHair, zTop], RD);
+      arcTube(gRail, [x, yHair, zTop], 1, 0, HAIR_HALF, 0, Math.PI, RD, 12);
+    });
+  }
+
+  function foot(x, y, zBase) {
+    cyl(gLower, [x, y, 0], [x, y, PLATE_H], 30, steelDark);
+    cyl(gLower, [x, y, PLATE_H], [x, y, PLATE_H + 12], 13, steelDark);
+    cyl(gLower, [x, y, PLATE_H], [x, y, zBase + STUD_LEN - 60], 8, steelDark);
+  }
+
+  var floorMesh = null, gridMesh = null, current = null;
+
+  function build(key) {
+    current = key;
+    var c = CFG[key];
+    clear(gUpper); clear(gLower); clear(gTop); clear(gRail); clear(gShelf);
+    wires.length = 0;
+
+    var L = c.L, W = c.W, H = c.H;
+    var frameTop = H - T, frameBot = frameTop - FRAME;
+
+    box(gTop, 0, L, 0, W, H - T, H);
+
+    box(gUpper, 0, L, 0, FRAME, frameBot, frameTop, steelDark);
+    box(gUpper, 0, L, W - FRAME, W, frameBot, frameTop, steelDark);
+    box(gUpper, 0, FRAME, FRAME, W - FRAME, frameBot, frameTop, steelDark);
+    box(gUpper, L - FRAME, L, FRAME, W - FRAME, frameBot, frameTop, steelDark);
+    c.crossX.forEach(function (x) {
+      box(gUpper, x - FRAME / 2, x + FRAME / 2, FRAME, W - FRAME, frameBot, frameTop, steelDark);
+    });
+
+    var legZ0 = c.runner ? c.runner.z + FRAME : LEG_BOT;
+    c.legXs.forEach(function (x) {
+      c.legYs.forEach(function (y) {
+        box(gUpper, x - LEG / 2, x + LEG / 2, y - LEG / 2, y + LEG / 2, legZ0, frameBot);
+      });
+    });
+
+    if (c.runner) {
+      var along = c.runner.axis === 'x';
+      var rows = along ? c.legYs : c.legXs;
+      rows.forEach(function (p) {
+        if (along) box(gUpper, c.runner.a0, c.runner.a1, p - FRAME / 2, p + FRAME / 2,
+                       c.runner.z, c.runner.z + FRAME);
+        else box(gUpper, p - FRAME / 2, p + FRAME / 2, c.runner.a0, c.runner.a1,
+                 c.runner.z, c.runner.z + FRAME);
+        // одна опора точно под угловой ножкой, вторая на дальнем конце лыжи
+        var far = along ? c.legXs[c.legXs.length - 1] : c.legYs[c.legYs.length - 1];
+        [c.runner.a0 + 40, far].forEach(function (q) {
+          foot(along ? q : p, along ? p : q, c.runner.z);
+        });
+      });
+    } else {
+      c.legXs.forEach(function (x) {
+        c.legYs.forEach(function (y) { foot(x, y, LEG_BOT); });
+      });
+    }
+
+    var sz = c.shelfZ;
+    var sx0 = c.legXs[0] + LEG / 2, sx1 = c.legXs[1] - LEG / 2;
+    var ft = sz - T, fb = ft - SH_FR;
+    box(gShelf, sx0, sx1, 0, W, ft, sz);
+    box(gShelf, sx0, sx1, 0, SH_FR, fb, ft, steelDark);
+    box(gShelf, sx0, sx1, W - SH_FR, W, fb, ft, steelDark);
+    box(gShelf, sx0, sx0 + SH_FR, SH_FR, W - SH_FR, fb, ft, steelDark);
+    box(gShelf, sx1 - SH_FR, sx1, SH_FR, W - SH_FR, fb, ft, steelDark);
+    var nsc = c.shelfCross || 0;
+    for (var i = 1; i <= nsc; i++) {
+      var xc = sx0 + ((sx1 - sx0) * i) / (nsc + 1);
+      box(gShelf, xc - SH_FR / 2, xc + SH_FR / 2, SH_FR, W - SH_FR, fb, ft, steelDark);
+    }
+
+    if (c.rail) c.rail.forEach(function (r) { railRun(H, r.y, r.sign, r.xa, r.xb, r.hairs); });
+
+    model.position.set(-L / 2, -W / 2, 0);
+    if (floorMesh) { model.remove(floorMesh); model.remove(gridMesh); }
+    floorMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(6000, 6000),
+      new THREE.MeshStandardMaterial({ color: 0x8d9aa2, roughness: .95, metalness: 0, transparent: true, opacity: .28 }));
+    floorMesh.position.set(L / 2, W / 2, -1);
+    model.add(floorMesh);
+    gridMesh = new THREE.GridHelper(6000, 24, 0x6f7d86, 0x6f7d86);
+    gridMesh.material.transparent = true; gridMesh.material.opacity = .22;
+    gridMesh.rotation.x = Math.PI / 2; gridMesh.position.set(L / 2, W / 2, 0);
+    model.add(gridMesh);
+
+    renderSpec(key);
+    renderDrawing(key);
+    document.getElementById('s-gab').textContent = c.name;
+    document.getElementById('s-file').textContent = c.file;
+    gUpper.position.z = +document.getElementById('h').value - H;
+  }
+
+  function renderSpec(key) {
+    var host = document.getElementById('spec'), html = '';
+    SPEC[key].forEach(function (sec) {
+      html += '<section><p class="eyebrow">' + sec[0] + '</p><dl>';
+      sec[1].forEach(function (r) {
+        html += '<dt>' + r[0] + '</dt><dd>' + (r[2] ? '<b>' + r[1] + '</b>' : r[1]) + '</dd>';
+      });
+      html += '</dl></section>';
+    });
+    host.innerHTML = html;
+  }
+
+  // ---- чертёж: три проекции, размеры, основная надпись ---------------------
+  // Строится из того же CFG, что и 3D, поэтому разойтись с моделью не может.
+
+  var SH = null;  // накопитель фрагментов SVG текущего листа
+  var K = 1;      // масштабный коэффициент для толщин и шрифта
+
+  function f(v) { return Math.round(v * 10) / 10; }
+  function ln(x1, y1, x2, y2, cls) {
+    SH.push('<line x1="' + f(x1) + '" y1="' + f(y1) + '" x2="' + f(x2) +
+            '" y2="' + f(y2) + '" class="' + cls + '"/>');
+  }
+  function rc(x, y, w, h, cls) {
+    if (w <= 0.01 || h <= 0.01) return;
+    SH.push('<rect x="' + f(x) + '" y="' + f(y) + '" width="' + f(w) +
+            '" height="' + f(h) + '" class="' + (cls || 'c') + '"/>');
+  }
+  function tx(x, y, t, cls, anchor, rot) {
+    var tr = rot ? ' transform="rotate(' + rot + ' ' + f(x) + ' ' + f(y) + ')"' : '';
+    SH.push('<text x="' + f(x) + '" y="' + f(y) + '" class="' + cls +
+            '" text-anchor="' + (anchor || 'middle') + '"' + tr + '>' + t + '</text>');
+  }
+  function arrow(x, y, dx, dy) {
+    var a = 30 * K, w = 9 * K;
+    SH.push('<path class="ar" d="M' + f(x) + ' ' + f(y) +
+            'L' + f(x + dx * a - dy * w) + ' ' + f(y + dy * a + dx * w) +
+            'L' + f(x + dx * a + dy * w) + ' ' + f(y + dy * a - dx * w) + 'Z"/>');
+  }
+
+  // размер по горизонтали: x1..x2, линия на уровне y, выноски от ye
+  function dimH(x1, x2, y, t, ye) {
+    var o = 26 * K;
+    ln(x1, ye, x1, y + (y > ye ? o : -o), 'ext');
+    ln(x2, ye, x2, y + (y > ye ? o : -o), 'ext');
+    ln(x1 - o, y, x2 + o, y, 'dim');
+    arrow(x1, y, 1, 0); arrow(x2, y, -1, 0);
+    tx((x1 + x2) / 2, y - 20 * K, t, 'dt');
+  }
+  // размер по вертикали: y1..y2, линия на x, выноски от xe
+  function dimV(y1, y2, x, t, xe) {
+    var o = 26 * K;
+    ln(xe, y1, x + (x > xe ? o : -o), y1, 'ext');
+    ln(xe, y2, x + (x > xe ? o : -o), y2, 'ext');
+    ln(x, y1 - o, x, y2 + o, 'dim');
+    arrow(x, y1, 0, 1); arrow(x, y2, 0, -1);
+    tx(x - 20 * K, (y1 + y2) / 2, t, 'dt', 'middle', -90);
+  }
+
+  // Проекция «спереди» и «сбоку» рисуются одинаково: горизонталь + высота.
+  // ox, oy — левый верхний угол области вида; top — отметка верха изделия.
+  function elevation(c, ox, oy, top, across) {
+    var H = c.H, frameTop = H - T, frameBot = frameTop - FRAME;
+    var X = function (v) { return ox + v; };
+    var Z = function (z) { return oy + (top - z); };
+    var legs = across ? c.legYs : c.legXs;
+    var W = across ? c.W : c.L;
+
+    rc(X(0), Z(H), W, T, 'c');                        // лист
+    rc(X(0), Z(frameTop), W, FRAME, 'c');             // обвязка
+    var legZ0 = c.runner ? c.runner.z + FRAME : LEG_BOT;
+    legs.forEach(function (p) { rc(X(p - LEG / 2), Z(frameBot), LEG, frameBot - legZ0, 'c'); });
+
+    if (c.runner) {
+      var alongThis = (c.runner.axis === 'x') !== across;
+      if (alongThis) rc(X(c.runner.a0), Z(c.runner.z + FRAME), c.runner.a1 - c.runner.a0, FRAME, 'c');
+      else legs.forEach(function (p) { rc(X(p - FRAME / 2), Z(c.runner.z + FRAME), FRAME, FRAME, 'c'); });
+    }
+
+    // опоры
+    var feet = footPositions(c, across);
+    feet.forEach(function (q) {
+      rc(X(q - 30), Z(PLATE_H), 60, PLATE_H, 'c');
+      ln(X(q), Z(PLATE_H), X(q), Z(c.runner ? c.runner.z : LEG_BOT), 'c');
+    });
+
+    // полка
+    var s = shelfBounds(c);
+    var a0 = across ? s.y0 : s.x0, a1 = across ? s.y1 : s.x1;
+    rc(X(a0), Z(c.shelfZ), a1 - a0, T, 'c');
+    rc(X(a0), Z(c.shelfZ - T), a1 - a0, SH_FR, 'c');
+
+    // бортик
+    if (c.rail) c.rail.forEach(function (r) {
+      var zTop = H + RAIL_TOP_H, zLow = H + RAIL_LOW_H;
+      if (across) {
+        var yEdge = r.y, sign = r.sign;
+        var yh = yEdge + sign * RD, yb = yh - sign * RAIL_D;
+        ln(X(yh), Z(zTop + HAIR_HALF), X(yh), Z(H - T - FRAME), 'c');
+        SH.push('<circle cx="' + f(X(yb)) + '" cy="' + f(Z(zTop)) + '" r="' + RD + '" class="c"/>');
+        SH.push('<circle cx="' + f(X(yb)) + '" cy="' + f(Z(zLow)) + '" r="' + RD + '" class="c"/>');
+      } else {
+        ln(X(r.xa), Z(zTop), X(r.xb), Z(zTop), 'c');
+        ln(X(r.xa), Z(zLow), X(r.xb), Z(zLow), 'c');
+        SH.push('<path class="c" fill="none" d="M' + f(X(r.xb)) + ' ' + f(Z(zTop)) +
+                'A' + f((zTop - zLow) / 2) + ' ' + f((zTop - zLow) / 2) + ' 0 0 1 ' +
+                f(X(r.xb)) + ' ' + f(Z(zLow)) + '"/>');
+        SH.push('<path class="c" fill="none" d="M' + f(X(r.xa)) + ' ' + f(Z(zLow)) +
+                'A' + f((zTop - zLow) / 2) + ' ' + f((zTop - zLow) / 2) + ' 0 0 1 ' +
+                f(X(r.xa)) + ' ' + f(Z(zTop)) + '"/>');
+        r.hairs.forEach(function (x) {
+          ln(X(x - HAIR_HALF), Z(zTop), X(x - HAIR_HALF), Z(H - T - FRAME), 'c');
+          ln(X(x + HAIR_HALF), Z(zTop), X(x + HAIR_HALF), Z(H - T - FRAME), 'c');
+          SH.push('<path class="c" fill="none" d="M' + f(X(x - HAIR_HALF)) + ' ' + f(Z(zTop)) +
+                  'A' + HAIR_HALF + ' ' + HAIR_HALF + ' 0 0 1 ' +
+                  f(X(x + HAIR_HALF)) + ' ' + f(Z(zTop)) + '"/>');
+        });
+      }
+    });
+    return { X: X, Z: Z };
+  }
+
+  function shelfBounds(c) {
+    return { x0: c.legXs[0] + LEG / 2, x1: c.legXs[1] - LEG / 2, y0: 0, y1: c.W };
+  }
+  function footPositions(c, across) {
+    if (!c.runner) return across ? c.legYs : c.legXs;
+    var along = c.runner.axis === 'x';
+    if (along === across) return across ? c.legYs : c.legXs;
+    var far = along ? c.legXs[c.legXs.length - 1] : c.legYs[c.legYs.length - 1];
+    return [c.runner.a0 + 40, far];
+  }
+
+  function planView(c, ox, oy) {
+    var X = function (v) { return ox + v; }, Y = function (v) { return oy + v; };
+    rc(X(0), Y(0), c.L, c.W, 'c');
+    rc(X(0), Y(0), c.L, FRAME, 'hid');
+    rc(X(0), Y(c.W - FRAME), c.L, FRAME, 'hid');
+    rc(X(0), Y(FRAME), FRAME, c.W - 2 * FRAME, 'hid');
+    rc(X(c.L - FRAME), Y(FRAME), FRAME, c.W - 2 * FRAME, 'hid');
+    c.crossX.forEach(function (x) {
+      rc(X(x - FRAME / 2), Y(FRAME), FRAME, c.W - 2 * FRAME, 'hid');
+    });
+    var s = shelfBounds(c);
+    rc(X(s.x0), Y(s.y0), s.x1 - s.x0, s.y1 - s.y0, 'hid');
+    c.legXs.forEach(function (x) {
+      c.legYs.forEach(function (y) { rc(X(x - LEG / 2), Y(y - LEG / 2), LEG, LEG, 'c'); });
+    });
+    if (c.runner) {
+      var along = c.runner.axis === 'x';
+      (along ? c.legYs : c.legXs).forEach(function (p) {
+        if (along) rc(X(c.runner.a0), Y(p - FRAME / 2), c.runner.a1 - c.runner.a0, FRAME, 'hid');
+        else rc(X(p - FRAME / 2), Y(c.runner.a0), FRAME, c.runner.a1 - c.runner.a0, 'hid');
+      });
+    }
+    if (c.rail) c.rail.forEach(function (r) {
+      var yh = r.y + r.sign * RD, yb = yh - r.sign * RAIL_D;
+      ln(X(r.xa), Y(yh), X(r.xb), Y(yh), 'c');
+      ln(X(r.xa), Y(yb), X(r.xb), Y(yb), 'c');
+    });
+    return { X: X, Y: Y };
+  }
+
+  function titleBlock(x, y, w, h, c) {
+    var rows = [
+      ['Наименование', 'Стол производственный ' + c.name],
+      ['Материал', 'Нержавеющая сталь AISI 304'],
+      ['Размеры', 'в миллиметрах, справочные'],
+      ['Файл модели', c.file]
+    ];
+    rc(x, y, w, h, 'tb');
+    var rh = h / rows.length;
+    rows.forEach(function (r, i) {
+      if (i) ln(x, y + i * rh, x + w, y + i * rh, 'tbl');
+      tx(x + 24 * K, y + i * rh + rh * 0.68, r[0], 'tbk', 'start');
+      tx(x + w * 0.34, y + i * rh + rh * 0.68, r[1], 'tbv', 'start');
+    });
+    ln(x + w * 0.32, y, x + w * 0.32, y + h, 'tbl');
+  }
+
+  function mkSheet(c) {
+    SH = [];
+    var top = c.H + (c.rail ? RAIL_TOP_H + HAIR_HALF : 0);
+    var M = 300, G = 560, G2 = 520, TBH = 300;
+    var contentW = c.L + G + c.W;
+    var contentH = top + G2 + c.W;
+    var sw = M + contentW + M;
+    var sh = M + contentH + M * 0.6 + TBH;
+    K = sw / 3800;
+
+    var fx = M, fy = M;                     // вид спереди
+    var sx = M + c.L + G, sy = M;           // вид сбоку
+    var px = M, py = M + top + G2;          // вид сверху
+
+    var e1 = elevation(c, fx, fy, top, false);
+    var e2 = elevation(c, sx, sy, top, true);
+    var pv = planView(c, px, py);
+
+    var zeroY = e1.Z(0), topY = e1.Z(c.H);
+    dimH(e1.X(0), e1.X(c.L), zeroY + 200, String(c.L), zeroY);
+    dimV(topY, zeroY, e1.X(0) - 200, String(c.H), e1.X(0));
+    dimV(e1.Z(c.shelfZ), zeroY, e1.X(0) - 380, String(c.shelfZ), e1.X(0));
+    if (c.runner)
+      dimV(e1.Z(c.runner.z), zeroY, e1.X(c.L) + 200, String(c.runner.z), e1.X(c.L));
+    if (c.legXs[0] - LEG / 2 > 1) {
+      var g0 = c.legXs[0] - LEG / 2;
+      dimH(e1.X(0), e1.X(g0), zeroY + 380, String(g0), zeroY);
+      dimH(e1.X(g0), e1.X(c.L), zeroY + 380, String(c.L - g0), zeroY);
+    }
+    if (c.rail)
+      dimV(e1.Z(c.H + RAIL_TOP_H + HAIR_HALF), topY, e1.X(c.L) + 200,
+           String(RAIL_TOP_H + HAIR_HALF), e1.X(c.L));
+
+    var z2 = e2.Z(0);
+    dimH(e2.X(0), e2.X(c.W), z2 + 200, String(c.W), z2);
+    dimV(e2.Z(c.H), e2.Z(c.H - T - FRAME), e2.X(c.W) + 200, String(FRAME + T), e2.X(c.W));
+
+    dimH(pv.X(0), pv.X(c.L), pv.Y(c.W) + 200, String(c.L), pv.Y(c.W));
+    dimV(pv.Y(0), pv.Y(c.W), pv.X(c.L) + 200, String(c.W), pv.X(c.L));
+    var ax = c.legXs;
+    dimH(pv.X(ax[0]), pv.X(ax[1]), pv.Y(0) - 200, String(ax[1] - ax[0]), pv.Y(0));
+
+    tx(fx + c.L / 2, fy - 120 * K, 'Вид спереди', 'vn');
+    tx(sx + c.W / 2, sy - 120 * K, 'Вид сбоку', 'vn');
+    tx(px + c.L / 2, py - 120 * K, 'Вид сверху', 'vn');
+
+    var tbw = Math.min(2200, sw - 2 * M), tbx = sw - M - tbw, tby = sh - M * 0.6 - TBH;
+    titleBlock(tbx, tby, tbw, TBH, c);
+
+    var st = '<style>' +
+      '.c{fill:none;stroke:#1a2228;stroke-width:' + f(7 * K) + '}' +
+      '.hid{fill:none;stroke:#7d8d97;stroke-width:' + f(4 * K) + ';stroke-dasharray:' + f(38 * K) + ' ' + f(22 * K) + '}' +
+      '.dim,.ext{stroke:#a8680a;stroke-width:' + f(3.4 * K) + ';fill:none}' +
+      '.ar{fill:#a8680a}' +
+      '.dt{fill:#a8680a;font:' + f(62 * K) + 'px "PT Mono",monospace}' +
+      '.vn{fill:#5b6c77;font:700 ' + f(64 * K) + 'px "PT Sans Narrow",sans-serif;letter-spacing:.08em}' +
+      '.tb{fill:none;stroke:#1a2228;stroke-width:' + f(6 * K) + '}' +
+      '.tbl{stroke:#1a2228;stroke-width:' + f(3.4 * K) + '}' +
+      '.tbk{fill:#5b6c77;font:' + f(52 * K) + 'px "PT Sans",sans-serif}' +
+      '.tbv{fill:#131a1f;font:' + f(54 * K) + 'px "PT Mono",monospace}' +
+      '.fr{fill:none;stroke:#1a2228;stroke-width:' + f(8 * K) + '}' +
+      '</style>';
+    var frame = '<rect x="' + f(M * 0.32) + '" y="' + f(M * 0.32) + '" width="' +
+      f(sw - M * 0.64) + '" height="' + f(sh - M * 0.64) + '" class="fr"/>';
+
+    return '<svg viewBox="0 0 ' + f(sw) + ' ' + f(sh) +
+      '" xmlns="http://www.w3.org/2000/svg">' + st + frame + SH.join('') + '</svg>';
+  }
+
+  function renderDrawing(key) {
+    document.getElementById('sheet').innerHTML = mkSheet(CFG[key]);
+  }
+
+  var target = new THREE.Vector3(0, 620, 0);
+  var sph = { r: 4600, th: -0.62, ph: 1.17 };
+  var pan = new THREE.Vector3();
+
+  function place() {
+    var r = sph.r, ph = Math.max(0.08, Math.min(Math.PI - 0.08, sph.ph));
+    camera.position.set(
+      r * Math.sin(ph) * Math.sin(sph.th),
+      r * Math.cos(ph),
+      r * Math.sin(ph) * Math.cos(sph.th));
+    camera.position.add(target).add(pan);
+    camera.lookAt(new THREE.Vector3().addVectors(target, pan));
+  }
+
+  var drag = null;
+  canvas.addEventListener('pointerdown', function (e) {
+    canvas.setPointerCapture(e.pointerId);
+    drag = { x: e.clientX, y: e.clientY, pan: e.button === 2 || e.shiftKey };
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag.x = e.clientX; drag.y = e.clientY;
+    if (drag.pan) {
+      pan.x -= dx * sph.r * 0.0004 * Math.cos(sph.th);
+      pan.z += dx * sph.r * 0.0004 * Math.sin(sph.th);
+      pan.y += dy * sph.r * 0.0004;
+    } else {
+      sph.th -= dx * 0.006;
+      sph.ph = Math.max(0.08, Math.min(Math.PI - 0.08, sph.ph - dy * 0.006));
+    }
+    place();
+  });
+  function endDrag() { drag = null; }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    sph.r = Math.max(500, Math.min(11000, sph.r * (1 + Math.sign(e.deltaY) * 0.11)));
+    place();
+  }, { passive: false });
+
+  function setView(v) {
+    var base = CFG[current].cam;
+    var V = {
+      iso:   { th: -0.62, ph: 1.17, r: base.r, t: base.t, p: [0, 0, 0] },
+      front: { th: 0, ph: 1.5708, r: base.r * 0.92, t: base.t, p: [0, 0, 0] },
+      side:  { th: 1.5708, ph: 1.5708, r: base.r * 0.75, t: base.t, p: [0, 0, 0] },
+      top:   { th: 0, ph: 0.12, r: base.r * 0.92, t: base.t - 70, p: [0, 0, 0] },
+      under: { th: -0.5, ph: 2.62, r: base.r * 0.85, t: base.t + 80, p: [0, 0, 0] },
+      rail:  { th: -0.9, ph: 1.32, r: 900, t: 1180, p: [-CFG[current].L * 0.41, 0, 0] }
+    }[v];
+    sph.th = V.th; sph.ph = V.ph; sph.r = V.r;
+    target.set(0, V.t, 0); pan.set(V.p[0], V.p[1], V.p[2]);
+    place();
+  }
+
+  function press(host, el) {
+    [].forEach.call(host.querySelectorAll('button'), function (x) {
+      x.setAttribute('aria-pressed', String(x === el));
+    });
+  }
+
+  document.getElementById('views').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    press(this, b); setView(b.dataset.v);
+  });
+
+  document.getElementById('tables').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || b.dataset.k === current) return;
+    press(this, b);
+    build(b.dataset.k);
+    press(document.getElementById('views'), document.querySelector('#views button'));
+    setView('iso');
+  });
+
+  document.getElementById('toggles').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', String(on));
+    if (b.dataset.t === 'rail') gRail.visible = on;
+    if (b.dataset.t === 'shelf') gShelf.visible = on;
+    if (b.dataset.t === 'top') gTop.visible = on;
+    if (b.dataset.t === 'wire') { showWire = on; wires.forEach(function (w) { w.visible = on; }); }
+  });
+
+  var hIn = document.getElementById('h');
+  hIn.addEventListener('input', function () {
+    var d = +hIn.value - CFG[current].H;
+    gUpper.position.z = d;
+    document.getElementById('hval').textContent = hIn.value;
+    document.getElementById('travel').textContent = d;
+  });
+
+  function resize() {
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  function loop() { resize(); renderer.render(scene, camera); requestAnimationFrame(loop); }
+
+  build('t2000');
+  setView('iso');
+  loop();
+})();
+</script>
