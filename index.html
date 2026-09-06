@@ -712,16 +712,19 @@ footer {
   function mkSheet(c) {
     SH = [];
     var top = c.H + (c.rail ? RAIL_TOP_H + HAIR_HALF : 0);
-    var M = 300, G = 560, G2 = 520, TBH = 300;
-    var contentW = c.L + G + c.W;
-    var contentH = top + G2 + c.W;
-    var sw = M + contentW + M;
-    var sh = M + contentH + M * 0.6 + TBH;
+    // Поля рассчитаны под размерные линии: слева две цепочки высот,
+    // справа размер ширины на виде сбоку, снизу две цепочки под планом,
+    // и только после них — штамп.
+    var ML = 640, MR = 420, MT = 340, MB = 200;
+    var G = 560, G2 = 1000, BELOW = 620, TBH = 300;
+    var sw = ML + c.L + G + c.W + MR;
+    var planBottom = MT + top + G2 + c.W;
+    var sh = planBottom + BELOW + TBH + MB;
     K = sw / 3800;
 
-    var fx = M, fy = M;                     // вид спереди
-    var sx = M + c.L + G, sy = M;           // вид сбоку
-    var px = M, py = M + top + G2;          // вид сверху
+    var fx = ML, fy = MT;                   // вид спереди
+    var sx = ML + c.L + G, sy = MT;         // вид сбоку
+    var px = ML, py = MT + top + G2;        // вид сверху
 
     var e1 = elevation(c, fx, fy, top, false);
     var e2 = elevation(c, sx, sy, top, true);
@@ -748,6 +751,15 @@ footer {
 
     dimH(pv.X(0), pv.X(c.L), pv.Y(c.W) + 200, String(c.L), pv.Y(c.W));
     dimV(pv.Y(0), pv.Y(c.W), pv.X(c.L) + 200, String(c.W), pv.X(c.L));
+    // длины бортиков — на виде сверху, где они не накладываются друг на друга
+    if (c.rail) c.rail.forEach(function (r) {
+      var atTop = r.sign < 0;
+      dimH(pv.X(r.xa), pv.X(r.xb),
+           atTop ? pv.Y(0) - 380 : pv.Y(c.W) + 380,
+           String(r.xb - r.xa),
+           atTop ? pv.Y(0) : pv.Y(c.W));
+    });
+
     var ax = c.legXs;
     dimH(pv.X(ax[0]), pv.X(ax[1]), pv.Y(0) - 200, String(ax[1] - ax[0]), pv.Y(0));
 
@@ -755,8 +767,8 @@ footer {
     tx(sx + c.W / 2, sy - 120 * K, 'Вид сбоку', 'vn');
     tx(px + c.L / 2, py - 120 * K, 'Вид сверху', 'vn');
 
-    var tbw = Math.min(2200, sw - 2 * M), tbx = sw - M - tbw, tby = sh - M * 0.6 - TBH;
-    titleBlock(tbx, tby, tbw, TBH, c);
+    var tbw = Math.min(2400, sw - ML - MR);
+    titleBlock(sw - MR - tbw, planBottom + BELOW, tbw, TBH, c);
 
     var st = '<style>' +
       '.c{fill:none;stroke:#1a2228;stroke-width:' + f(7 * K) + '}' +
@@ -771,8 +783,8 @@ footer {
       '.tbv{fill:#131a1f;font:' + f(54 * K) + 'px "PT Mono",monospace}' +
       '.fr{fill:none;stroke:#1a2228;stroke-width:' + f(8 * K) + '}' +
       '</style>';
-    var frame = '<rect x="' + f(M * 0.32) + '" y="' + f(M * 0.32) + '" width="' +
-      f(sw - M * 0.64) + '" height="' + f(sh - M * 0.64) + '" class="fr"/>';
+    var frame = '<rect x="100" y="100" width="' + f(sw - 200) +
+      '" height="' + f(sh - 200) + '" class="fr"/>';
 
     return '<svg viewBox="0 0 ' + f(sw) + ' ' + f(sh) +
       '" xmlns="http://www.w3.org/2000/svg">' + st + frame + SH.join('') + '</svg>';
